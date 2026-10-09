@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Game Studio</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar left">
+        <div class="brand-box">
+          <h1>AI Game Studio</h1>
+          <span>Godot IDE для планшета</span>
+        </div>
+
+        <div class="group-box">
+          <h3>Проекты</h3>
+          <div id="projectList" class="project-list"></div>
+          <button id="newProjectBtn" class="primary-btn">Новый проект</button>
+        </div>
+      </aside>
+
+      <main class="main-panel">
+        <header class="topbar">
+          <div>
+            <h2 id="projectTitle">Выберите проект</h2>
+          </div>
+          <div class="top-actions">
+            <button id="saveBtn">Сохранить</button>
+            <button id="exportBtn">Экспорт ZIP</button>
+            <label class="file-input-btn">
+              <input id="importInput" type="file" accept=".zip" />
+              Импорт ZIP
+            </label>
+          </div>
+        </header>
+
+        <div class="workspace">
+          <aside class="sidebar file-sidebar">
+            <div class="group-box">
+              <h3>Файлы</h3>
+              <div id="fileTree" class="tree"></div>
+            </div>
+          </aside>
+
+          <section class="editor-panel">
+            <textarea id="editor" spellcheck="false"></textarea>
+          </section>
+
+          <aside class="chat-panel">
+            <div class="group-box chat-box">
+              <h3>Чат AI</h3>
+              <div id="chatOutput" class="chat-output"></div>
+              <textarea id="promptInput" rows="5" placeholder="Например: Добавь прыжок и систему очков для платформера..."></textarea>
+              <button id="generateBtn" class="primary-btn">Сгенерировать</button>
+            </div>
+          </aside>
+        </div>
+      </main>
+    </div>
+
+    <div id="diffModal" class="modal hidden">
+      <div class="modal-content">
+        <h3>Подтвердите изменения</h3>
+        <div id="diffSummary" class="diff-summary"></div>
+        <div class="diff-grid">
+          <div>
+            <h4>Было</h4>
+            <pre id="beforeCode"></pre>
+          </div>
+          <div>
+            <h4>Стало</h4>
+            <pre id="afterCode"></pre>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button id="cancelPatchBtn" class="secondary-btn">Отмена</button>
+          <button id="applyPatchBtn" class="primary-btn">Применить</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

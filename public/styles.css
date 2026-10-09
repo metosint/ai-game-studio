@@ -1,0 +1,301 @@
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  background: #0f172a;
+  color: #e2e8f0;
+  font-family: Arial, sans-serif;
+  height: 100%;
+}
+
+button, textarea, input {
+  font: inherit;
+}
+
+button {
+  border: none;
+  border-radius: 10px;
+  background: #1e293b;
+  color: white;
+  padding: 0.7rem 1rem;
+  cursor: pointer;
+}
+
+button:hover {
+  filter: brightness(1.05);
+}
+
+.primary-btn {
+  background: linear-gradient(135deg, #7c3aed, #2563eb);
+}
+
+.secondary-btn {
+  background: #334155;
+}
+
+.app-shell {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  height: 100vh;
+}
+
+.sidebar {
+  background: #111827;
+  border-right: 1px solid #1f2937;
+  padding: 1rem;
+}
+
+.brand-box {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #334155;
+}
+
+.brand-box h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.6rem;
+}
+
+.brand-box span {
+  color: #a5b4fc;
+  font-size: 0.85rem;
+}
+
+.group-box {
+  background: #0b1220;
+  border: 1px solid #1f2937;
+  border-radius: 14px;
+  padding: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.group-box h3 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+}
+
+.project-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 0.8rem;
+}
+
+.project-item {
+  background: #111827;
+  border: 1px solid #374151;
+  border-radius: 10px;
+  padding: 0.7rem;
+  text-align: left;
+  width: 100%;
+}
+
+.project-item.active {
+  border-color: #7c3aed;
+  box-shadow: inset 0 0 0 1px #7c3aed;
+}
+
+.main-panel {
+  display: flex;
+  flex-direction: column;
+  background: #020817;
+  min-width: 0;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid #1f2937;
+}
+
+.topbar h2 {
+  margin: 0;
+}
+
+.top-actions {
+  display: flex;
+  gap: 0.7rem;
+  align-items: center;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: 240px 1fr 350px;
+  flex: 1;
+  min-height: 0;
+}
+
+.file-sidebar {
+  border-right: 1px solid #1f2937;
+  padding: 0.8rem;
+}
+
+.tree {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.94rem;
+}
+
+.tree-item {
+  padding: 0.3rem 0.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tree-item.active {
+  background: #1d4ed8;
+}
+
+.editor-panel {
+  min-width: 0;
+  padding: 0.8rem;
+}
+
+#editor {
+  width: 100%;
+  height: 100%;
+  border: 1px solid #1f2937;
+  border-radius: 12px;
+  background: #0b1220;
+  color: #e2e8f0;
+  font-family: Consolas, monospace;
+  font-size: 0.94rem;
+  resize: none;
+  padding: 1rem;
+}
+
+.chat-panel {
+  border-left: 1px solid #1f2937;
+  padding: 0.8rem;
+}
+
+.chat-box {
+  height: calc(100vh - 90px);
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-output {
+  flex: 1;
+  background: #020817;
+  border-radius: 10px;
+  border: 1px solid #1f2937;
+  padding: 0.7rem;
+  overflow: auto;
+  margin-bottom: 0.8rem;
+  min-height: 120px;
+}
+
+.message {
+  background: #111827;
+  border: 1px solid #374151;
+  border-radius: 10px;
+  padding: 0.6rem;
+  margin-bottom: 0.5rem;
+  white-space: pre-wrap;
+}
+
+#promptInput {
+  width: 100%;
+  resize: vertical;
+  min-height: 120px;
+  background: #0b1220;
+  color: white;
+  border: 1px solid #374151;
+  border-radius: 10px;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.file-input-btn {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #334155;
+  padding: 0.7rem 1rem;
+  cursor: pointer;
+}
+
+.file-input-btn input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 8, 23, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  width: min(1100px, 90vw);
+  max-height: 85vh;
+  overflow: auto;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 16px;
+  padding: 1rem;
+}
+
+.diff-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: #020817;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 0.8rem;
+  min-height: 180px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 960px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar, .chat-panel, .file-sidebar {
+    border: none;
+  }
+
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.8rem;
+  }
+}

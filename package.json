@@ -1,0 +1,27 @@
+{
+  "name": "ai-game-studio",
+  "version": "1.0.0",
+  "description": "AI Game Studio — browser IDE for Godot games on Russian tablet workflow",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "godot",
+    "gdscript",
+    "ai",
+    "ide",
+    "browser",
+    "tablet"
+  ],
+  "author": "metosint",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.0",
+    "express": "^4.19.2",
+    "jszip": "^3.10.0",
+    "multer": "^1.4.5-lts.1"
+  }
+}
