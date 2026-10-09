@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Game Studio - IDE с ChatGPT и Claude</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app { display: grid; grid-template-columns: 280px 1fr; height: 100vh; }
+
+        .sidebar {
+            background: #111827;
+            border-right: 1px solid #1f2937;
+            padding: 1.5rem 1rem;
+            overflow-y: auto;
+        }
+
+        .logo { font-size: 1.4rem; font-weight: bold; margin-bottom: 1.5rem; color: #a5f3fc; }
+
+        .section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #94a3b8;
+            margin-bottom: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+
+        .button {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            margin: 0.4rem 0;
+            border: none;
+            border-radius: 8px;
+            background: #1e293b;
+            color: white;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+        .button:hover { background: #334155; }
+        .button.primary { background: linear-gradient(135deg, #7c3aed, #2563eb); }
+        .button.primary:hover { filter: brightness(1.1); }
+        .button.active { background: #0ea5e9; border-left: 3px solid #06b6d4; }
+        .button.danger { background: #dc2626; }
+        .button.danger:hover { background: #991b1b; }
+
+        .api-config {
+            background: #0b1220;
+            border: 1px solid #1f2937;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .api-config input {
+            width: 100%;
+            padding: 0.6rem;
+            background: #020817;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: white;
+            margin: 0.5rem 0;
+            font-size: 0.85rem;
+        }
+
+        .api-config label {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            display: block;
+            margin-top: 0.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .provider-select {
+            width: 100%;
+            padding: 0.6rem;
+            background: #020817;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: white;
+            margin: 0.5rem 0;
+        }
+
+        .main { display: flex; flex-direction: column; background: #020817; min-width: 0; }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #1f2937;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .topbar h2 { font-size: 1.3rem; }
+
+        .actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: 200px 1fr 320px;
+            flex: 1;
+            min-height: 0;
+            gap: 1px;
+            background: #1f2937;
+        }
+
+        .file-tree {
+            background: #0b1220;
+            padding: 1rem 0.8rem;
+            overflow-y: auto;
+            border-right: 1px solid #1f2937;
+        }
+
+        .file-item {
+            padding: 0.6rem 0.8rem;
+            margin: 0.2rem 0;
+            background: #111827;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: all 0.2s;
+        }
+
+        .file-item:hover { background: #1e293b; }
+        .file-item.active { background: #0ea5e9; color: white; }
+
+        .editor {
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            min-width: 0;
+        }
+
+        textarea {
+            flex: 1;
+            background: #0b1220;
+            color: #e2e8f0;
+            border: 1px solid #1f2937;
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            resize: none;
+            min-width: 0;
+        }
+
+        .chat-panel {
+            background: #0b1220;
+            border-left: 1px solid #1f2937;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-output {
+            flex: 1;
+            background: #020817;
+            border: 1px solid #1f2937;
+            border-radius: 8px;
+            padding: 0.8rem;
+            overflow-y: auto;
+            margin-bottom: 0.8rem;
+            font-size: 0.85rem;
+        }
+
+        .message {
+            background: #111827;
+            border-left: 2px solid #7c3aed;
+            padding: 0.6rem;
+            margin: 0.4rem 0;
+            border-radius: 4px;
+            word-wrap: break-word;
+        }
+
+        .message.ai { border-left-color: #0ea5e9; }
+        .message.error { border-left-color: #dc2626; background: #7f1d1d; }
+        .message.success { border-left-color: #10b981; }
+
+        .prompt-input {
+            width: 100%;
+            height: 80px;
+            background: #020817;
+            color: #e2e8f0;
+            border: 1px solid #1f2937;
+            border-radius: 8px;
+            padding: 0.8rem;
+            font-family: inherit;
+            font-size: 0.9rem;
+            resize: none;
+            margin-bottom: 0.8rem;
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 8, 23, 0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .modal.show { display: flex; }
+
+        .modal-content {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow-y: auto;
+            width: 600px;
+        }
+
+        .modal-header { font-size: 1.3rem; margin-bottom: 1.5rem; }
+
+        .diff-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .diff-col h4 {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-bottom: 0.5rem;
+        }
+
+        .diff-code {
+            background: #020817;
+            border: 1px solid #1f2937;
+            border-radius: 6px;
+            padding: 0.8rem;
+            font-family: monospace;
+            font-size: 0.75rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+
+        .modal-actions button {
+            padding: 0.8rem 1.5rem;
+            min-width: 120px;
+        }
+
+        input[type="file"] { display: none; }
+
+        .loading {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #0ea5e9;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .api-status {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: #020817;
+            border-radius: 4px;
+            border: 1px solid #1f2937;
+        }
+
+        .api-status.ok { color: #10b981; border-color: #10b981; }
+        .api-status.error { color: #dc2626; border-color: #dc2626; }
+
+        @media (max-width: 1200px) {
+            .workspace { grid-template-columns: 1fr 300px; }
+            .file-tree { display: none; }
+        }
+
+        @media (max-width: 768px) {
+            .app { grid-template-columns: 1fr; }
+            .sidebar { display: none; position: fixed; width: 280px; height: 100%; z-index: 10; }
+            .workspace { grid-template-columns: 1fr; }
+            .chat-panel { max-height: 40%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <aside class="sidebar">
+            <div class="logo">🎮 AI IDE</div>
+
+            <div class="section">
+                <div class="section-title">🔑 API Ключи</div>
+                <div class="api-config">
+                    <label>Выбери провайдера:</label>
+                    <select class="provider-select" id="aiProvider" onchange="updateProviderUI()">
+                        <option value="local">📌 Без AI (локально)</option>
+                        <option value="openai">🟢 ChatGPT (OpenAI)</option>
+                        <option value="claude">🟣 Claude (Anthropic)</option>
+                    </select>
+
+                    <div id="openaiConfig" style="display: none;">
+                        <label>OpenAI API Key:</label>
+                        <input type="password" id="openaiKey" placeholder="sk-..." onchange="saveConfig()">
+                        <label>Модель:</label>
+                        <input type="text" id="openaiModel" value="gpt-4o-mini" onchange="saveConfig()">
+                    </div>
+
+                    <div id="claudeConfig" style="display: none;">
+                        <label>Claude API Key:</label>
+                        <input type="password" id="claudeKey" placeholder="sk-ant-..." onchange="saveConfig()">
+                        <label>Модель:</label>
+                        <input type="text" id="claudeModel" value="claude-3-5-sonnet-20241022" onchange="saveConfig()">
+                    </div>
+
+                    <div id="apiStatus" class="api-status">⚙️ Конфиг загружается...</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Проекты</div>
+                <div id="projectsList"></div>
+                <button class="button primary" onclick="createProject()">+ Новый проект</button>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Действия</div>
+                <button class="button" onclick="exportProject()">⬇️ Экспорт ZIP</button>
+                <button class="button" onclick="importProject()">⬆️ Импорт ZIP</button>
+                <label class="button" style="cursor: pointer;">
+                    📁 Загрузить ZIP
+                    <input type="file" id="zipInput" accept=".zip" onchange="handleZipImport(event)">
+                </label>
+            </div>
+
+            <div class="section">
+                <div class="section-title">История</div>
+                <div id="backupsList"></div>
+            </div>
+        </aside>
+
+        <main class="main">
+            <div class="topbar">
+                <h2 id="projectTitle">Выберите проект</h2>
+                <div class="actions">
+                    <button class="button" onclick="saveFile()">💾 Сохранить</button>
+                    <button class="button" onclick="deleteCurrentFile()">🗑️ Удалить</button>
+                </div>
+            </div>
+
+            <div class="workspace">
+                <div class="file-tree">
+                    <div class="section-title" style="margin-bottom: 1rem;">Файлы</div>
+                    <div id="filesList"></div>
+                </div>
+
+                <div class="editor">
+                    <textarea id="codeEditor" placeholder="Выберите файл для редактирования..."></textarea>
+                </div>
+
+                <div class="chat-panel">
+                    <div class="section-title">🤖 AI Генератор</div>
+                    <div class="chat-output" id="chatOutput"></div>
+                    <textarea class="prompt-input" id="promptInput" placeholder="Например: добавь прыжок и систему очков для платформера..."></textarea>
+                    <button class="button primary" id="generateBtn" onclick="generateCode()">✨ Сгенерировать</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="diffModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Подтвердите изменения</div>
+            <div id="diffSummary" style="color: #94a3b8; margin-bottom: 1rem;"></div>
+            <div class="diff-grid">
+                <div class="diff-col">
+                    <h4>Было:</h4>
+                    <div class="diff-code" id="beforeCode"></div>
+                </div>
+                <div class="diff-col">
+                    <h4>Станет:</h4>
+                    <div class="diff-code" id="afterCode"></div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="button" onclick="rejectPatch()">Отмена</button>
+                <button class="button primary" onclick="applyPatch()">✓ Применить</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== CONFIG ====================
+        const config = {
+            provider: 'local',
+            openai: { key: '', model: 'gpt-4o-mini' },
+            claude: { key: '', model: 'claude-3-5-sonnet-20241022' }
+        };
+
+        function saveConfig() {
+            config.provider = document.getElementById('aiProvider').value;
+            config.openai.key = document.getElementById('openaiKey').value;
+            config.openai.model = document.getElementById('openaiModel').value;
+            config.claude.key = document.getElementById('claudeKey').value;
+            config.claude.model = document.getElementById('claudeModel').value;
+            localStorage.setItem('aiConfig', JSON.stringify(config));
+            updateAPIStatus();
+        }
+
+        function loadConfig() {
+            const saved = localStorage.getItem('aiConfig');
+            if (saved) {
+                Object.assign(config, JSON.parse(saved));
+                document.getElementById('aiProvider').value = config.provider;
+                document.getElementById('openaiKey').value = config.openai.key;
+                document.getElementById('openaiModel').value = config.openai.model;
+                document.getElementById('claudeKey').value = config.claude.key;
+                document.getElementById('claudeModel').value = config.claude.model;
+            }
+            updateProviderUI();
+            updateAPIStatus();
+        }
+
+        function updateProviderUI() {
+            const provider = document.getElementById('aiProvider').value;
+            document.getElementById('openaiConfig').style.display = provider === 'openai' ? 'block' : 'none';
+            document.getElementById('claudeConfig').style.display = provider === 'claude' ? 'block' : 'none';
+            saveConfig();
+        }
+
+        function updateAPIStatus() {
+            const status = document.getElementById('apiStatus');
+            const provider = config.provider;
+
+            if (provider === 'local') {
+                status.textContent = '✓ Локальный режим (без API)';
+                status.className = 'api-status ok';
+            } else if (provider === 'openai' && config.openai.key) {
+                status.textContent = '✓ ChatGPT подключен';
+                status.className = 'api-status ok';
+            } else if (provider === 'claude' && config.claude.key) {
+                status.textContent = '✓ Claude подключен';
+                status.className = 'api-status ok';
+            } else {
+                status.textContent = '⚠️ API ключ не установлен';
+                status.className = 'api-status error';
+            }
+        }
+
+        // ==================== STORAGE ====================
+        const storage = {
+            getProject: (id) => JSON.parse(localStorage.getItem(`project_${id}`) || '{}'),
+            setProject: (id, data) => localStorage.setItem(`project_${id}`, JSON.stringify(data)),
+            getFile: (pid, fid) => localStorage.getItem(`file_${pid}_${fid}`) || '',
+            setFile: (pid, fid, content) => localStorage.setItem(`file_${pid}_${fid}`, content),
+            deleteFile: (pid, fid) => localStorage.removeItem(`file_${pid}_${fid}`),
+            getProjects: () => {
+                const keys = Object.keys(localStorage).filter(k => k.startsWith('project_'));
+                return keys.map(k => JSON.parse(localStorage.getItem(k)));
+            },
+            backup: (pid, fid, content) => {
+                const ts = new Date().toISOString();
+                localStorage.setItem(`backup_${pid}_${fid}_${ts}`, content);
+            },
+            getBackups: (pid, fid) => {
+                const keys = Object.keys(localStorage).filter(k => k.startsWith(`backup_${pid}_${fid}_`));
+                return keys.map(k => ({
+                    name: k.replace(`backup_${pid}_${fid}_`, ''),
+                    content: localStorage.getItem(k)
+                }));
+            }
+        };
+
+        // ==================== STATE ====================
+        let state = {
+            currentProject: null,
+            currentFile: null,
+            pendingPatch: null
+        };
+
+        // ==================== AI INTEGRATION ====================
+        async function callAI(prompt, context) {
+            const provider = config.provider;
+
+            if (provider === 'local') {
+                return generateLocalSuggestion(prompt, context);
+            } else if (provider === 'openai') {
+                return await callOpenAI(prompt, context);
+            } else if (provider === 'claude') {
+                return await callClaude(prompt, context);
+            }
+
+            return { summary: 'Провайдер не настроен', code: context };
+        }
+
+        async function callOpenAI(prompt, context) {
+            if (!config.openai.key) {
+                return { summary: '⚠️ OpenAI API ключ не установлен', code: context };
+            }
+
+            const systemPrompt = `Ты помощник для Godot 4 и GDScript. 
+            Когда пользователь просит добавить функцию, возвращай ТОЛЬКО улучшенный код.
+            Не добавляй объяснения, только код.
+            Расширяй существующий код, не перезаписывай его полностью.`;
+
+            const userMessage = `Текущий код:
+\`\`\`
+${context}
+\`\`\`
+
+Запрос: ${prompt}
+
+Верни только обновленный код без объяснений.`;
+
+            try {
+                addMessage('⏳ ChatGPT думает...', 'system');
+
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${config.openai.key}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: config.openai.model,
+                        messages: [
+                            { role: 'system', content: systemPrompt },
+                            { role: 'user', content: userMessage }
+                        ],
+                        temperature: 0.3,
+                        max_tokens: 2000
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    return { summary: `❌ Ошибка OpenAI: ${error.error?.message || 'Unknown error'}`, code: context };
+                }
+
+                const data = await response.json();
+                const generatedCode = data.choices[0].message.content.trim();
+
+                return {
+                    summary: `✅ ChatGPT обновил код (${generatedCode.split('\n').length} строк)`,
+                    code: generatedCode
+                };
+            } catch (error) {
+                return { summary: `❌ Ошибка: ${error.message}`, code: context };
+            }
+        }
+
+        async function callClaude(prompt, context) {
+            if (!config.claude.key) {
+                return { summary: '⚠️ Claude API ключ не установлен', code: context };
+            }
+
+            const systemPrompt = `Ты помощник для Godot 4 и GDScript. 
+            Когда пользователь просит добавить функцию, возвращай ТОЛЬКО улучшенный код.
+            Не добавляй объяснения, только код.
+            Расширяй существующий код, не перезаписывай его полностью.`;
+
+            const userMessage = `Текущий код:
+\`\`\`
+${context}
+\`\`\`
+
+Запрос: ${prompt}
+
+Верни только обновленный код без объяснений.`;
+
+            try {
+                addMessage('⏳ Claude думает...', 'system');
+
+                const response = await fetch('https://api.anthropic.com/v1/messages', {
+                    method: 'POST',
+                    headers: {
+                        'x-api-key': config.claude.key,
+                        'anthropic-version': '2023-06-01',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: config.claude.model,
+                        max_tokens: 2000,
+                        system: systemPrompt,
+                        messages: [
+                            { role: 'user', content: userMessage }
+                        ]
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    return { summary: `❌ Ошибка Claude: ${error.error?.message || 'Unknown error'}`, code: context };
+                }
+
+                const data = await response.json();
+                const generatedCode = data.content[0].text.trim();
+
+                return {
+                    summary: `✅ Claude обновил код (${generatedCode.split('\n').length} строк)`,
+                    code: generatedCode
+                };
+            } catch (error) {
+                return { summary: `❌ Ошибка: ${error.message}`, code: context };
+            }
+        }
+
+        function generateLocalSuggestion(prompt, context) {
+            const rules = [
+                { keywords: ['прыжок', 'jump'], append: '\n\nfunc jump():\n    velocity.y = -jump_force' },
+                { keywords: ['атака', 'attack', 'удар'], append: '\n\nfunc attack():\n    print("Attack!")' },
+                { keywords: ['монета', 'coin', 'score', 'очки'], append: '\n\nvar coins = 0\n\nfunc collect_coin():\n    coins += 1' },
+                { keywords: ['враг', 'enemy', 'npc'], append: '\n\nclass Enemy:\n    var health = 10\n    var damage = 2' },
+                { keywords: ['платформа', 'platform', 'gravity'], append: '\n\nconst GRAVITY = 980.0\nvar velocity = Vector2.ZERO' }
+            ];
+
+            for (const rule of rules) {
+                if (rule.keywords.some(kw => prompt.toLowerCase().includes(kw))) {
+                    return {
+                        summary: `✅ Локальная подсказка: добавлено ${rule.append.split('\n').length} строк`,
+                        code: context + rule.append
+                    };
+                }
+            }
+
+            return {
+                summary: '⚠️ Попробуй: прыжок, атака, монета, враг, платформа',
+                code: context
+            };
+        }
+
+        // ==================== INIT ====================
+        function initDefaultProject() {
+            const projects = storage.getProjects();
+            if (projects.length === 0) {
+                const pid = 'demo-rpg';
+                storage.setProject(pid, { id: pid, name: 'Demo RPG', createdAt: new Date().toISOString() });
+
+                const files = {
+                    'project.godot': '[application]\nconfig/name="DemoRPG"\nrun/main_scene="res://scenes/Main.tscn"',
+                    'scenes/Main.tscn': '[gd_scene]\n[node name="Main" type="Node2D"]',
+                    'scripts/Player.gd': 'extends Node2D\n\nvar speed = 180.0\nvar jump_force = 350.0\n\nfunc _ready() -> void:\n    print("Player ready")\n\nfunc _process(delta: float) -> void:\n    if Input.is_action_pressed("ui_right"):\n        position.x += speed * delta',
+                    'README.md': '# Demo RPG\n\nЭтот проект был создан в AI Game Studio.\nВы можете редактировать файлы и использовать AI для генерации кода.'
+                };
+
+                for (const [name, content] of Object.entries(files)) {
+                    storage.setFile(pid, name, content);
+                }
+            }
+            renderProjects();
+        }
+
+        // ==================== RENDER ====================
+        function renderProjects() {
+            const list = document.getElementById('projectsList');
+            const projects = storage.getProjects();
+
+            list.innerHTML = projects.map(p => `
+                <button class="button ${state.currentProject === p.id ? 'active' : ''}"
+                    onclick="openProject('${p.id}')">${p.name}</button>
+            `).join('');
+        }
+
+        function renderFiles(projectId) {
+            const list = document.getElementById('filesList');
+            const allFiles = Object.keys(localStorage)
+                .filter(k => k.startsWith(`file_${projectId}_`))
+                .map(k => k.replace(`file_${projectId}_`, ''))
+                .sort();
+
+            if (allFiles.length === 0) {
+                list.innerHTML = '<div style="color: #64748b; font-size: 0.8rem;">Нет файлов</div>';
+                return;
+            }
+
+            list.innerHTML = allFiles.map(f => `
+                <div class="file-item ${state.currentFile === f ? 'active' : ''}"
+                    onclick="openFile('${f}')">${f}</div>
+            `).join('');
+        }
+
+        function renderBackups() {
+            const list = document.getElementById('backupsList');
+            if (!state.currentProject || !state.currentFile) return;
+
+            const backups = storage.getBackups(state.currentProject, state.currentFile);
+            if (backups.length === 0) {
+                list.innerHTML = '<div style="color: #64748b; font-size: 0.8rem;">Нет резервных копий</div>';
+                return;
+            }
+
+            list.innerHTML = backups.slice(-5).reverse().map((b, i) => `
+                <button class="button" onclick="restoreBackup('${b.name}')" style="font-size: 0.8rem;">
+                    ↩️ ${b.name.slice(0, 10)}
+                </button>
+            `).join('');
+        }
+
+        // ==================== ACTIONS ====================
+        function createProject() {
+            const name = prompt('Название проекта:');
+            if (!name) return;
+
+            const id = name.toLowerCase().replace(/\s+/g, '-');
+            storage.setProject(id, { id, name, createdAt: new Date().toISOString() });
+
+            const defaultFiles = {
+                'README.md': `# ${name}\n\nПроект создан в AI Game Studio`,
+                'scripts/Main.gd': 'extends Node2D\n\nfunc _ready():\n    print("Game started!")'
+            };
+
+            for (const [fname, content] of Object.entries(defaultFiles)) {
+                storage.setFile(id, fname, content);
+            }
+
+            renderProjects();
+            openProject(id);
+        }
+
+        function openProject(projectId) {
+            state.currentProject = projectId;
+            state.currentFile = null;
+            state.pendingPatch = null;
+
+            const project = storage.getProject(projectId);
+            document.getElementById('projectTitle').textContent = project.name;
+            document.getElementById('codeEditor').value = '';
+
+            renderProjects();
+            renderFiles(projectId);
+            renderBackups();
+
+            const files = Object.keys(localStorage)
+                .filter(k => k.startsWith(`file_${projectId}_`))
+                .map(k => k.replace(`file_${projectId}_`, ''))
+                .sort();
+
+            if (files.length > 0) openFile(files[0]);
+        }
+
+        function openFile(fileName) {
+            if (!state.currentProject) return;
+
+            state.currentFile = fileName;
+            const content = storage.getFile(state.currentProject, fileName);
+            document.getElementById('codeEditor').value = content;
+
+            renderFiles(state.currentProject);
+            renderBackups();
+        }
+
+        function saveFile() {
+            if (!state.currentProject || !state.currentFile) return;
+
+            const content = document.getElementById('codeEditor').value;
+            const old = storage.getFile(state.currentProject, state.currentFile);
+
+            if (old !== content) {
+                storage.backup(state.currentProject, state.currentFile, old);
+                storage.setFile(state.currentProject, state.currentFile, content);
+                addMessage('✓ Файл сохранён', 'success');
+                renderBackups();
+            }
+        }
+
+        function deleteCurrentFile() {
+            if (!state.currentProject || !state.currentFile) return;
+
+            if (confirm(`Удалить ${state.currentFile}?`)) {
+                storage.deleteFile(state.currentProject, state.currentFile);
+                state.currentFile = null;
+                renderFiles(state.currentProject);
+                document.getElementById('codeEditor').value = '';
+            }
+        }
+
+        async function generateCode() {
+            const prompt = document.getElementById('promptInput').value.trim();
+            if (!prompt || !state.currentProject || !state.currentFile) return;
+
+            const currentContent = storage.getFile(state.currentProject, state.currentFile);
+            const btn = document.getElementById('generateBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>';
+
+            const result = await callAI(prompt, currentContent);
+
+            btn.disabled = false;
+            btn.innerHTML = '✨ Сгенерировать';
+
+            state.pendingPatch = {
+                file: state.currentFile,
+                before: currentContent,
+                after: result.code,
+                summary: result.summary
+            };
+
+            document.getElementById('beforeCode').textContent = currentContent;
+            document.getElementById('afterCode').textContent = result.code;
+            document.getElementById('diffSummary').textContent = result.summary;
+            document.getElementById('diffModal').classList.add('show');
+
+            addMessage(result.summary, 'ai');
+            document.getElementById('promptInput').value = '';
+        }
+
+        function applyPatch() {
+            if (!state.pendingPatch) return;
+
+            saveFile();
+            storage.backup(state.currentProject, state.pendingPatch.file, state.pendingPatch.before);
+            storage.setFile(state.currentProject, state.pendingPatch.file, state.pendingPatch.after);
+            document.getElementById('codeEditor').value = state.pendingPatch.after;
+            document.getElementById('diffModal').classList.remove('show');
+            state.pendingPatch = null;
+
+            addMessage('✓ Изменения применены и сохранены', 'success');
+            renderBackups();
+        }
+
+        function rejectPatch() {
+            document.getElementById('diffModal').classList.remove('show');
+            state.pendingPatch = null;
+            addMessage('Изменения отменены', 'system');
+        }
+
+        function restoreBackup(name) {
+            if (!state.currentProject || !state.currentFile) return;
+
+            const content = localStorage.getItem(`backup_${state.currentProject}_${state.currentFile}_${name}`);
+            if (content !== null) {
+                storage.setFile(state.currentProject, state.currentFile, content);
+                document.getElementById('codeEditor').value = content;
+                addMessage('✓ Восстановлено из резер��ной копии', 'success');
+            }
+        }
+
+        function exportProject() {
+            if (!state.currentProject) return;
+
+            const files = {};
+            const pid = state.currentProject;
+            const project = storage.getProject(pid);
+
+            Object.keys(localStorage)
+                .filter(k => k.startsWith(`file_${pid}_`))
+                .forEach(k => {
+                    const fileName = k.replace(`file_${pid}_`, '');
+                    files[fileName] = localStorage.getItem(k);
+                });
+
+            const data = { project: project.name, files };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${pid}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            addMessage('✓ Проект экспортирован', 'success');
+        }
+
+        function importProject() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const data = JSON.parse(event.target.result);
+                    const pid = data.project.toLowerCase().replace(/\s+/g, '-');
+                    storage.setProject(pid, { id: pid, name: data.project, createdAt: new Date().toISOString() });
+
+                    for (const [fileName, content] of Object.entries(data.files)) {
+                        storage.setFile(pid, fileName, content);
+                    }
+
+                    renderProjects();
+                    openProject(pid);
+                    addMessage('✓ Проект импортирован', 'success');
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        function handleZipImport(event) {
+            addMessage('ℹ️ Используйте экспорт/импорт JSON для сохранения проектов', 'system');
+        }
+
+        function addMessage(text, sender = 'ai') {
+            const chat = document.getElementById('chatOutput');
+            const msg = document.createElement('div');
+            msg.className = `message ${sender}`;
+            const emoji = sender === 'ai' ? '🤖' : sender === 'success' ? '✅' : '⚙️';
+            msg.innerHTML = `<strong>${emoji}:</strong> ${text}`;
+            chat.appendChild(msg);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        // ==================== INIT ====================
+        loadConfig();
+        initDefaultProject();
+    </script>
+</body>
+</html>
